@@ -5,6 +5,7 @@ const knex = require('knex');
 
 const unit = require('./controllers/unit');
 const testUnit = require('./controllers/testUnit');
+const unitList = require('./controllers/unitList');
 
 
 const db = knex({
@@ -47,7 +48,9 @@ app.get('/', (req, res) => { res.send(db.select('*').from('units'))  })
 
 // app.get('/unit/:id', (req, res, db) => { unit.handleUnitGet(req, res, db) })
 
-app.get('/testUnit', testUnit.handleTestUnit(db))
+app.get('/testUnit', testUnit.handleTestUnit(db));
+
+app.get('/unitList', unitList.handleUnitList(db));
 
 
 
