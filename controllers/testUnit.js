@@ -11,7 +11,7 @@ const handleTestUnit = (db) => (req, res) => {
     .then(unit => {
         res.json(unit[0])
     })
-    .catch(err => res.status(400).json('unable to get user'))
+    .catch(err => res.status(400).json('unable to retrieve user'))
 }
 
 module.exports = {
