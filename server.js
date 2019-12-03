@@ -8,6 +8,7 @@ const testUnit = require('./controllers/testUnit');
 const unitList = require('./controllers/unitList');
 const loadUnit = require('./controllers/loadUnit');
 const testLoadEq = require('./controllers/testLoadEq');
+const loadEq = require('./controllers/loadEq');
 
 const db = knex({
     client: 'pg',
@@ -76,6 +77,8 @@ app.post('/loadUnit', loadUnit.handleLoadUnit(db));
 
 app.get('/testLoadEq', testLoadEq.handleTestLoadEq(db));
 
-app.listen(3000, ()=> {
+app.get('/loadEq', loadEq.handleLoadEq(db));
+
+app.listen(3000, () => {
     console.log('app is running on port 3000');
 })
