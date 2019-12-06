@@ -52,12 +52,15 @@ const db = knex({
     // '->>' returns all 'name' keys in text form instead of JSON
     // Note: data is returned as an object, thus requires some
     //  tinkering to grab the right data
-     db.select('*')
-        .from('test_equipment')
-        .whereRaw('(info ->> ?) = ?', ['name', 'omega weapon'])
-        // .then(res => console.log(res[0].info.stats));
-        .then(res => console.log(res[0].info));
+    //  db.select('*')
+    //     .from('test_equipment')
+    //     .whereRaw('(info ->> ?) = ?', ['name', 'omega weapon'])
+    //     // .then(res => console.log(res[0].info.stats));
+    //     .then(res => console.log(res[0].info));
 
+    db.select('equipment_id')
+        .from('test_equipment')
+        .then(result => { console.log(result) });
 
 
 const app = express();
