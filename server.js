@@ -58,9 +58,10 @@ const db = knex({
     //     // .then(res => console.log(res[0].info.stats));
     //     .then(res => console.log(res[0].info));
 
-    db.select('equipment_id')
+    //Removes 'info' key from objects
+    db.select('info')
         .from('test_equipment')
-        .then(result => { console.log(result) });
+        .then(result => { console.log(Object.keys(result).map(key => result[key].info)) });
 
 
 const app = express();
