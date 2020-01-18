@@ -9,6 +9,7 @@ const unitList = require('./controllers/unitList');
 const loadUnit = require('./controllers/loadUnit');
 const testLoadEq = require('./controllers/testLoadEq');
 const loadEq = require('./controllers/loadEq');
+const loadDefaultUnit = require('./controllers/loadDefaultUnit');
 
 const db = knex({
     client: 'pg',
@@ -59,10 +60,19 @@ const db = knex({
     //     .then(res => console.log(res[0].info));
 
     //Removes 'info' key from objects
-    db.select('info')
-        .from('test_equipment')
-        .then(result => { console.log(Object.keys(result).map(key => result[key].info)) });
+    // db.select('info')
+    //     .from('test_equipment')
+    //     .then(result => { console.log(Object.keys(result).map(key => result[key].info)) });
 
+
+    db.select('info').from('stats')
+    .join('units', function() {
+        this.on('units.unit_id', '=', 'stats.unit_id')
+    })
+    .where('units.name', '=', 'Lightning')
+    .then(unit => {
+        console.log(unit[0].info);
+    })
 
 const app = express();
 
@@ -82,6 +92,8 @@ app.post('/loadUnit', loadUnit.handleLoadUnit(db));
 app.get('/testLoadEq', testLoadEq.handleTestLoadEq(db));
 
 app.get('/loadEq', loadEq.handleLoadEq(db));
+
+app.get('/loadDefaultUnit', loadDefaultUnit.handleLoadDefaultUnit(db));
 
 app.listen(3000, () => {
     console.log('app is running on port 3000');
