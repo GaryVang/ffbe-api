@@ -69,7 +69,7 @@ const db = knex({
     .join('units', function() {
         this.on('units.unit_id', '=', 'stats.unit_id')
     })
-    .where('units.name', '=', 'Lightning')
+    .where('units.name', '=', 'Esther')
     .then(unit => {
         console.log(unit[0].info);
     })

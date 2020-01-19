@@ -6,13 +6,13 @@ const handleLoadUnit = (db) => (req, res) => {
     {
         return res.status(400).json('no unit name sent');
     }
-    return db.select('*').from('stats')
+    return db.select('info').from('stats')
         .join('units', function() {
             this.on('units.unit_id', '=', 'stats.unit_id')
         })
         .where('units.name', '=', unitName)
         .then(unit => {
-            res.json(unit[0])
+            res.json(unit[0].info)
         })
     .catch(err => res.status(400).json('unable to retrieve user'))
 }
