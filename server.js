@@ -23,51 +23,124 @@ const db = knex({
   },
 });
 
+db.select(
+  "weapon.weapon_id",
+  "equippable.name",
+  "weapon.type",
+  "equipment.rarity",
+  "equipment.hp",
+  "equipment.mp",
+  "equipment.atk",
+  "equipment.def",
+  "equipment.mag",
+  "equipment.spr",
+  "equipment.fire_resist",
+  "equipment.ice_resist",
+  "equipment.lightning_resist",
+  "equipment.water_resist",
+  "equipment.wind_resist",
+  "equipment.earth_resist",
+  "equipment.light_resist",
+  "equipment.dark_resist",
+  "equipment.poison_resist",
+  "equipment.blind_resist",
+  "equipment.sleep_resist",
+  "equipment.silence_resist",
+  "equipment.paralyze_resist",
+  "equipment.confusion_resist",
+  "equipment.disease_resist",
+  "equipment.petrify_resist",
+  "weapon.is_twohanded",
+  "weapon.accuracy",
+  "weapon_variance.lower_limit",
+  "weapon_variance.upper_limit",
+  // "element",
+  db.raw("ARRAY_AGG(element) as element_inflict"),
+  // db.raw("ARRAY_AGG(status || ',' ||  chance) as status")
+  // db.raw("ARRAY_AGG('{\\\'' || status || '\\\':' || chance || '}') as status")
+  db.raw("ARRAY_AGG(status) as status_inflict"),
+  db.raw("ARRAY_AGG(chance) as status_inflict_chance")
+  // "weapon_status_inflict.status",
+  // "weapon_status_inflict.chance"
+)
+  .from("weapon")
+  // .join("equippable", function () {
+  //   this.on("equipment.equipment_id", "=", "equippable.eq_id");
+  // })
+  // .join("equipment", function () {
+  //   this.on("equipment.equipment_id", "=", "weapon.weapon_id");
+  // })
+  // .join("weapon_variance", function () {
+  //     this.on("weapon.variance_id", "=", "weapon_variance.variance_id");
+  // })
+  .innerJoin("equipment", "equipment.equipment_id", "=", "weapon.weapon_id")
+  .innerJoin("equippable", "equippable.eq_id", "=", "weapon.weapon_id")
+  .innerJoin(
+    "weapon_variance",
+    "weapon_variance.variance_id",
+    "=",
+    "weapon.variance_id"
+  )
+  // .innerJoin("weapon_status_inflict", 'weapon_status_inflict.weapon_id', '=', 'weapon.weapon_id')
+  .fullOuterJoin(
+    "weapon_status_inflict",
+    "weapon_status_inflict.weapon_id",
+    "weapon.weapon_id"
+  )
+  .fullOuterJoin(
+    "weapon_element_inflict",
+    "weapon_element_inflict.weapon_id",
+    "weapon.weapon_id"
+  )
+  // .innerJoin('weapon_element_inflict', 'weapon_element_inflict.weapon_id', '=', 'weapon.weapon_id')
+  // .groupBy('equippable.eq_id', 'weapon.type', 'equipment.rarity','weapon_variance.upper_limit', 'weapon_status_inflict.status', 'weapon_status_inflict.chance')
+  .groupBy(
+    'weapon.weapon_id',
+    'equippable.name',
+    'equipment.rarity',
+    'equipment.hp',
+    'equipment.mp',
+    'equipment.atk',
+    'equipment.def',
+    'equipment.mag',
+    'equipment.spr',
+    'equipment.fire_resist',
+    'equipment.ice_resist',
+    'equipment.lightning_resist',
+    'equipment.water_resist',
+    'equipment.wind_resist',
+    'equipment.earth_resist',
+    'equipment.light_resist',
+    'equipment.dark_resist',
+    'equipment.poison_resist',
+    'equipment.blind_resist',
+    'equipment.sleep_resist',
+    'equipment.silence_resist',
+    'equipment.paralyze_resist',
+    'equipment.confusion_resist',
+    'equipment.disease_resist',
+    'equipment.petrify_resist',
+    'weapon_variance.lower_limit',
+    'weapon_variance.upper_limit',
+    // 'weapon_status_inflict.status',
+    // 'weapon_status_inflict.chance',
+  )
+  .orderBy("name", "asc")
+  .where('weapon.weapon_id', '=', '307002100')
+  // .then(console.log);
 
 
-// db.select(
-//   "eq_id",
-//   "name",
-//   "weapon.type",
-//   "rarity",
-//   "hp",
-//   "mp",
-//   "atk",
-//   "def",
-//   "mag",
-//   "spr",
-//   "fire_resist",
-//   "is_twohanded",
-//   "accuracy",
-//   "lower_limit",
-//   "upper_limit",
-//   // "element",
-//   // "status",
-//   // "chance"
-// )
-//   .from("equipment")
-//   .join("equippable", function () {
-//     this.on("equipment.equipment_id", "=", "equippable.eq_id");
-//   })
-//   .join("weapon", function () {
-//     this.on("equipment.equipment_id", "=", "weapon.weapon_id");
-//   })
-//   .join("weapon_variance", function () {
-//       this.on("weapon.variance_id", "=", "weapon_variance.variance_id");
-//     })
-//     // .join("weapon_element_inflict", function () {
-//     //   this.on("weapon.weapon_id", "=", "weapon_element_inflict.weapon_id");
-//     // })
-//   .where({ "weapon.weapon_id": 302006300 })
-//   .orderBy("name", "asc")
-//   .then((weaponList) => {
-//     //   res.json(unitList);
-//     // weapon_list = weaponList;
-//     console.log({weaponList});
-//   })
-  // .catch((err) => res.status(400).json("Unable to retrieve weapon list."));
 
-
+db.select("weapon.weapon_id", "type", "element")
+  .from("weapon")
+  .join("weapon_element_inflict", function () {
+    this.on("weapon.weapon_id", "=", "weapon_element_inflict.weapon_id");
+  })
+  .where({ "weapon.weapon_id": 302006300 })
+  .as("weapon_test")
+  .then((weaponList) => {
+    // console.log(weaponList);
+  });
 
 
 // db.select("sub_id")
@@ -82,7 +155,6 @@ const db = knex({
 //   .then((unit) => {
 //     console.log(unit);
 //   });
-
 
 // db
 //       .select(
@@ -112,10 +184,10 @@ const db = knex({
 //           // console.log(unit[0]);
 //         })
 //       })
-      // .then(data => console.log(data));
+// .then(data => console.log(data));
 
-  // db.pluck('equipment_type').from('equipment_option')
-  // .where({unit_id: 401006805})
+// db.pluck('equipment_type').from('equipment_option')
+// .where({unit_id: 401006805})
 
 //--------------Old - V1-------------------------------
 // const db = knex({
