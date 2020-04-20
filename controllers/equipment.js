@@ -177,11 +177,17 @@ await db.select(
       "weapon.accuracy",
       "weapon_variance.lower_limit",
       "weapon_variance.upper_limit",
-      db.raw("ARRAY_AGG(element) as element"),
-      db.raw("ARRAY_AGG(status) as status_inflict"),
-      db.raw("ARRAY_AGG(chance) as status_inflict_chance")
+      // db.raw("ARRAY_AGG(element) as element"),
+      db.raw("ARRAY_AGG(element) filter (where element is not null) as element_inflict"),
+      // db.raw("ARRAY_AGG(status) as status_inflict"),
+      // db.raw("ARRAY_AGG(chance) as status_inflict_chance"),
+      // db.raw("JSON_AGG((status, chance)) as godly")
+      db.raw("JSON_OBJECT_AGG(status, chance) filter (where status is not null) as status_inflict"),
       // "weapon_status_inflict.status",
       // "weapon_status_inflict.chance"
+      // db.raw("JSON_AGG((test.skill_id, test.name, test.rarity)) as skills"),
+      // db.raw("ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill.skill_id, 'name', skill.name, 'rarity', skill.rarity, 'effect', skill.effect,'limited', skill.limited)) as skills"),
+      db.raw("ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill.skill_id, 'name', skill.name, 'rarity', skill.rarity, 'effect', skill.effect,'limited', skill.limited, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4, 'unit_restriction', unit_restriction)) filter (where skill_id is not null) as skills")
     )
       .from("weapon")
       .innerJoin("equipment", "equipment.equipment_id", "=", "weapon.weapon_id")
@@ -202,6 +208,34 @@ await db.select(
         "weapon_element_inflict.weapon_id",
         "weapon.weapon_id"
       )
+      // move skill_passive.effect to skill_passive_effect.effect
+      .fullOuterJoin(db.select('eq_id', 'skill_passive.skill_id', 'name', 'rarity', 'skill_passive.effect', 'limited', 'effect_code_1', 'effect_code_2', 'effect_code_3', 'effect_code_4', db.raw("ARRAY_AGG(unit_id) filter (where unit_id is not null) as unit_restriction")) //db.raw("ARRAY_AGG(unit_id) filter (where unit_id is not null) as unit_id")
+        .from('equippable_skill')
+        .innerJoin('skill_passive', 'skill_passive.skill_id', 'equippable_skill.skill_id')
+        .innerJoin('weapon', 'weapon.weapon_id', 'equippable_skill.eq_id')
+        .innerJoin('skill_passive_effect', 'skill_passive_effect.skill_id', 'equippable_skill.skill_id')
+        // .innerJoin('skill_requirement', 'skill_requirement.skill_id', 'equippable_skill.skill_id') // Only for tmr/stmr ability
+        // .innerJoin('equipment', 'equipment.equipment_id', 'equippable.eq_id')
+        // .fullOuterJoin('skill_unit_restriction', 'skill_unit_restriction.skill_id', 'equippable_skill.skill_id')
+        .fullOuterJoin('skill_unit_restriction', function() {
+          this.on('skill_unit_restriction.skill_id', '=', 'equippable_skill.skill_id')
+        })
+        .whereNotNull('eq_id') // Necessary because fullOuterJoin will do a null = null, then results will have a row with all null values
+        // .whereNotNull('equippable_skill.skill_id')
+        .groupBy(
+          'equippable_skill.eq_id',
+          'skill_passive.skill_id',
+          'skill_passive_effect.effect_code_1',
+          'skill_passive_effect.effect_code_2',
+          'skill_passive_effect.effect_code_3',
+          'skill_passive_effect.effect_code_4',
+        )
+        // .where('equippable_skill.skill_id', '=', 'skill_passive.skill_id')
+        .as('skill'), 
+        'skill.eq_id', 'weapon.weapon_id'
+      )
+      // .where('weapon.weapon_id', '=', 'skill.eq_id')
+
       .groupBy(
         'weapon.weapon_id',
         'equippable.name',
@@ -232,6 +266,11 @@ await db.select(
         'weapon_variance.upper_limit',
         // 'weapon_status_inflict.status',
         // 'weapon_status_inflict.chance',
+        // 'skill.skill_id',
+        // 'skill.name',
+        // 'skill.rarity',
+        // 'skill.effect',
+        // 'skill.limited',
       )
       .orderBy("name", "asc")
       .then((weaponList) => {

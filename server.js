@@ -23,6 +23,8 @@ const db = knex({
   },
 });
 
+
+
 db.select(
   "weapon.weapon_id",
   "equippable.name",
@@ -55,24 +57,29 @@ db.select(
   "weapon_variance.lower_limit",
   "weapon_variance.upper_limit",
   // "element",
-  db.raw("ARRAY_AGG(element) as element_inflict"),
-  // db.raw("ARRAY_AGG(status || ',' ||  chance) as status")
-  // db.raw("ARRAY_AGG('{\\\'' || status || '\\\':' || chance || '}') as status")
-  db.raw("ARRAY_AGG(status) as status_inflict"),
-  db.raw("ARRAY_AGG(chance) as status_inflict_chance")
+  db.raw(
+    "ARRAY_AGG(element) filter (where element is not null) as element_inflict"
+  ),
+  // db.raw("ARRAY_AGG(status) as status_inflict"),
+  // db.raw("ARRAY_AGG(chance) as status_inflict_chance")
+  // db.raw("ARRAY_AGG(chance) as status_inflict_chance"),
   // "weapon_status_inflict.status",
-  // "weapon_status_inflict.chance"
+  // (db.select('status').from('weapon_status_inflict').where({"weapon_status_inflict.weapon_id": 301004800})).as('Godly')
+  // db.raw("JSON_AGG((status, chance)) as godly"),
+
+  db.raw(
+    "JSON_OBJECT_AGG(status, chance) filter (where status is not null) as status_inflict"
+  ),
+  // db.raw("JSON_OBJECT_AGG(status, chance) filter (where status is not null) as status_inflict"),
+  // db.raw("coalesce(status, 0) as godly")
+  // db.raw("JSON_OBJECT_AGG('skill_id', equippable_skill.skill_id) filter (where equippable_skill.skill_id is not null) as skills"),
+  // db.raw("JSON_OBJECT_AGG(test.skill_id, test.name, test.rarity) as skills"),
+  db.raw(
+    "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill.skill_id, 'name', skill.name, 'rarity', skill.rarity, 'effect', skill.effect,'limited', skill.limited)) as skills"
+  )
+  // db.raw("array_AGG(skill_id) as skills")
 )
   .from("weapon")
-  // .join("equippable", function () {
-  //   this.on("equipment.equipment_id", "=", "equippable.eq_id");
-  // })
-  // .join("equipment", function () {
-  //   this.on("equipment.equipment_id", "=", "weapon.weapon_id");
-  // })
-  // .join("weapon_variance", function () {
-  //     this.on("weapon.variance_id", "=", "weapon_variance.variance_id");
-  // })
   .innerJoin("equipment", "equipment.equipment_id", "=", "weapon.weapon_id")
   .innerJoin("equippable", "equippable.eq_id", "=", "weapon.weapon_id")
   .innerJoin(
@@ -81,7 +88,32 @@ db.select(
     "=",
     "weapon.variance_id"
   )
-  // .innerJoin("weapon_status_inflict", 'weapon_status_inflict.weapon_id', '=', 'weapon.weapon_id')
+  // .fullOuterJoin('equippable_skill', "equippable_skill.eq_id", "weapon.weapon_id")
+  // .innerJoin('skill_passive', "skill_passive.skill_id", '=', "equippable_skill.skill_id")
+
+  .fullOuterJoin(
+    db
+      .select(
+        "eq_id",
+        "skill_passive.skill_id",
+        "name",
+        "rarity",
+        "effect",
+        "limited"
+      )
+      .from("equippable_skill")
+      .innerJoin(
+        "skill_passive",
+        "skill_passive.skill_id",
+        "equippable_skill.skill_id"
+      )
+      // .where('equippable_skill.skill_id', '=', 'skill_passive.skill_id')
+      .as("skill"),
+    "skill.eq_id",
+    "weapon.weapon_id"
+  )
+
+  // .innerJoin('skill_passive', "skill_passive.skill_id", "=", "equippable_skill.skill_id")
   .fullOuterJoin(
     "weapon_status_inflict",
     "weapon_status_inflict.weapon_id",
@@ -92,56 +124,66 @@ db.select(
     "weapon_element_inflict.weapon_id",
     "weapon.weapon_id"
   )
-  // .innerJoin('weapon_element_inflict', 'weapon_element_inflict.weapon_id', '=', 'weapon.weapon_id')
-  // .groupBy('equippable.eq_id', 'weapon.type', 'equipment.rarity','weapon_variance.upper_limit', 'weapon_status_inflict.status', 'weapon_status_inflict.chance')
   .groupBy(
-    'weapon.weapon_id',
-    'equippable.name',
-    'equipment.rarity',
-    'equipment.hp',
-    'equipment.mp',
-    'equipment.atk',
-    'equipment.def',
-    'equipment.mag',
-    'equipment.spr',
-    'equipment.fire_resist',
-    'equipment.ice_resist',
-    'equipment.lightning_resist',
-    'equipment.water_resist',
-    'equipment.wind_resist',
-    'equipment.earth_resist',
-    'equipment.light_resist',
-    'equipment.dark_resist',
-    'equipment.poison_resist',
-    'equipment.blind_resist',
-    'equipment.sleep_resist',
-    'equipment.silence_resist',
-    'equipment.paralyze_resist',
-    'equipment.confusion_resist',
-    'equipment.disease_resist',
-    'equipment.petrify_resist',
-    'weapon_variance.lower_limit',
-    'weapon_variance.upper_limit',
+    "weapon.weapon_id",
+    "equippable.name",
+    "equipment.rarity",
+    "equipment.hp",
+    "equipment.mp",
+    "equipment.atk",
+    "equipment.def",
+    "equipment.mag",
+    "equipment.spr",
+    "equipment.fire_resist",
+    "equipment.ice_resist",
+    "equipment.lightning_resist",
+    "equipment.water_resist",
+    "equipment.wind_resist",
+    "equipment.earth_resist",
+    "equipment.light_resist",
+    "equipment.dark_resist",
+    "equipment.poison_resist",
+    "equipment.blind_resist",
+    "equipment.sleep_resist",
+    "equipment.silence_resist",
+    "equipment.paralyze_resist",
+    "equipment.confusion_resist",
+    "equipment.disease_resist",
+    "equipment.petrify_resist",
+    "weapon_variance.lower_limit",
+    "weapon_variance.upper_limit"
     // 'weapon_status_inflict.status',
     // 'weapon_status_inflict.chance',
+    // 'weapon_element_inflict.element'
+    // 'equippable_skill.skill_id',
+    // 'skill.skill_id',
+    // 'skill.name',
+    // 'skill.rarity',
+    // 'skill.effect',
+    // 'skill.limited',
   )
   .orderBy("name", "asc")
-  .where('weapon.weapon_id', '=', '307002100')
-  // .then(console.log);
-
-
-
-db.select("weapon.weapon_id", "type", "element")
-  .from("weapon")
-  .join("weapon_element_inflict", function () {
-    this.on("weapon.weapon_id", "=", "weapon_element_inflict.weapon_id");
-  })
-  .where({ "weapon.weapon_id": 302006300 })
-  .as("weapon_test")
-  .then((weaponList) => {
-    // console.log(weaponList);
+  // .where({"weapon.weapon_id": 301004800}) // Assassin's Dagger
+  // .where({"weapon.weapon_id": 301000200}) // bronze knife
+  // .where({"weapon.weapon_id": 301005100}) // Dynamo Dagger
+  .where({ "weapon.weapon_id": 302002500 }) // Colbat Winglet 2x skills
+  .then((weapon) => {
+    //   res.json(unitList);
+    // weapon_list = weaponList;
+    // console.log(weapon);
   });
 
+// db.select("weapon.weapon_id", "type", "element")
+//   .from("weapon")
+//   .join("weapon_element_inflict", function () {
+//     this.on("weapon.weapon_id", "=", "weapon_element_inflict.weapon_id");
+//   })
+//   .where({ "weapon.weapon_id": 302006300 })
+//   .as("weapon_test")
+//   .then((weaponList) => {
+//     // console.log(weaponList);
+//   });
+//-----------------------------------------------Unit
 
 // db.select("sub_id")
 //   .from("unit_stat")
