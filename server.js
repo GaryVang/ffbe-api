@@ -5,6 +5,7 @@ const knex = require("knex");
 
 const unit = require("./controllers/unit");
 const equipment = require("./controllers/equipment");
+const materia = require("./controllers/materia");
 
 const testUnit = require("./controllers/testUnit");
 const unitList = require("./controllers/unitList");
@@ -23,7 +24,625 @@ const db = knex({
   },
 });
 
+//----------------------
+db
+      .select(
+        "unit_skill.unit_id",
+        "level",
+        "unit_skill.rarity as unit_rarity",
+        "unit_skill.skill_id",
+        "skill_passive.name",
+        "skill_passive.rarity as skill_rarity",
+        // "skill_passive_effect.effect",
+        // "skill_passive.limited",
+        // "effect_code_1",
+        // "effect_code_2",
+        // "effect_code_3",
+        // "effect_code_4",
+        // db.raw(
+        //   "ARRAY_AGG(unit_id) filter (where unit_id is not null) as requirements"
+        // )
+        // db.raw(
+        //   "JSON_OBJECT_AGG(status, chance) filter (where status is not null) as status_inflict"
+        // ),
+        db.raw(
+          "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill_passive_effect.skill_id, 'effect', skill_passive_effect.effect, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4)) filter (where skill_passive_effect.skill_id is not null) as effects"
+        )
+      ) //db.raw("ARRAY_AGG(unit_id) filter (where unit_id is not null) as unit_id")
+      .from("unit_skill")
+      .innerJoin(
+        "skill_passive",
+        "skill_passive.skill_id",
+        "unit_skill.skill_id"
+      )
+      // .innerJoin("unit", "unit.unit_id", "unit_skill.skill_id")
+      .innerJoin(
+        "skill_passive_effect",
+        "skill_passive_effect.skill_id",
+        "unit_skill.skill_id"
+      )
+      .groupBy(
+        "unit_skill.unit_id",
+        "unit_skill.level",
+        "unit_skill.rarity",
+        "unit_skill.skill_id",
+        "skill_passive.name",
+        "skill_passive.rarity",
+      )
+      .where({unit_id: 401006805})
+      // .then(console.log);
 
+//------------Unit
+db
+  .select(
+    "sub_id",
+    "unit.name",
+    "sex_id",
+    "hp_base",
+    "hp_pot",
+    "hp_door",
+    "mp_base",
+    "mp_pot",
+    "mp_door",
+    "atk_base",
+    "atk_pot",
+    "atk_door",
+    "def_base",
+    "def_pot",
+    "def_door",
+    "mag_base",
+    "mag_pot",
+    "mag_door",
+    "spr_base",
+    "spr_pot",
+    "spr_door",
+    "fire_resist",
+    "ice_resist",
+    "lightning_resist",
+    "water_resist",
+    "wind_resist",
+    "earth_resist",
+    "light_resist",
+    "dark_resist",
+    "poison_resist",
+    "blind_resist",
+    "sleep_resist",
+    "silence_resist",
+    "paralyze_resist",
+    "confusion_resist",
+    "disease_resist",
+    "petrify_resist",
+    "physical_resist",
+    "magical_resist",
+    "white_magic_affinity",
+    "black_magic_affinity",
+    "green_magic_affinity",
+    "blue_magic_affinity",
+
+    db.raw(
+      "ARRAY_AGG(DISTINCT equipment_type) filter (where equipment_type is not null) as equip"
+    ),
+    db.raw(
+      "ARRAY_AGG(DISTINCT role) filter (where role is not null) as roles"
+    ),
+    // db.raw(
+    //   "ARRAY_AGG(DISTINCT unit_skill.skill_id) filter (where unit_skill.skill_id is not null) as skills"
+    // ),
+    // db.raw(
+    //   "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill.skill_id, 'name', skill.name, 'rarity', skill.rarity, 'effect', skill.effect,'limited', skill.limited, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4, 'unit_restriction', skill.unit_restriction)) filter (where skill_id is not null) as skills"
+    // )
+    db.raw(
+      "ARRAY_AGG(DISTINCT JSONB_BUILD_OBJECT('level', skill.level, 'unit_rarity', skill.unit_rarity, 'skill_id', skill.skill_id, 'name', skill.name, 'skill_rarity', skill.skill_rarity, 'effects', skill.effects)) filter (where skill.skill_id is not null ) as skills"
+    )
+  )
+  .from("unit_stat")
+  .join("unit", function () {
+    this.on("unit.unit_id", "=", "unit_stat.unit_id");
+  })
+  .join("equipment_option", function () {
+    this.on("unit.unit_id", "=", "equipment_option.unit_id");
+    
+    // this.on("equipment_option.unit_id", "=", "unit_role.unit_id");
+  })
+  .join("unit_role", function () {
+    this.on("unit.unit_id", "=", "unit_role.unit_id");
+  })
+  // .join("unit_skill", function () {
+  //   this.on("unit.unit_id", "=", "unit_skill.unit_id");
+  // })
+  .fullOuterJoin(
+    db
+    .select(
+      "unit_skill.unit_id",
+      "level",
+      "unit_skill.rarity as unit_rarity",
+      "unit_skill.skill_id",
+      "skill_passive.name",
+      "skill_passive.rarity as skill_rarity",
+      // "skill_passive_effect.effect",
+      // "skill_passive.limited",
+      // "effect_code_1",
+      // "effect_code_2",
+      // "effect_code_3",
+      // "effect_code_4",
+      // db.raw(
+      //   "ARRAY_AGG(unit_id) filter (where unit_id is not null) as requirements"
+      // )
+      // db.raw(
+      //   "JSON_OBJECT_AGG(status, chance) filter (where status is not null) as status_inflict"
+      // ),
+      // db.raw(
+      //   "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill_passive_effect.skill_id, 'effect', skill_passive_effect.effect, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4)) filter (where skill_passive_effect.skill_id is not null) as effect"
+      // )
+      db.raw(
+        "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill_passive_effect.skill_id, 'effect', skill_passive_effect.effect, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4)) filter (where skill_passive_effect.skill_id is not null) as effects"
+      )
+    ) //db.raw("ARRAY_AGG(unit_id) filter (where unit_id is not null) as unit_id")
+    .from("unit_skill")
+    .innerJoin(
+      "skill_passive",
+      "skill_passive.skill_id",
+      "unit_skill.skill_id"
+    )
+    // .fullOuterJoin("unit", "unit.unit_id", "unit_skill.skill_id")
+    .innerJoin(
+      "skill_passive_effect",
+      "skill_passive_effect.skill_id",
+      "unit_skill.skill_id"
+    )
+    .groupBy(
+      "unit_skill.unit_id",
+      "unit_skill.level",
+      "unit_skill.rarity",
+      "unit_skill.skill_id",
+      "skill_passive.name",
+      "skill_passive.rarity",
+    )
+      // .select(
+      //   "unit_skill.unit_id",
+      //   "level",
+      //   "unit_skill.rarity as unit_rarity",
+      //   "skill_passive.skill_id",
+      //   "skill_passive.name",
+      //   "skill_passive.rarity",
+      //   "skill_passive_effect.effect",
+      //   // "skill_passive.limited",
+      //   "effect_code_1",
+      //   "effect_code_2",
+      //   "effect_code_3",
+      //   "effect_code_4",
+      //   // db.raw(
+      //   //   "ARRAY_AGG(unit_id) filter (where unit_id is not null) as requirements"
+      //   // )
+      //   // db.raw(
+      //   //   "JSON_OBJECT_AGG(status, chance) filter (where status is not null) as status_inflict"
+      //   // ),
+      // ) //db.raw("ARRAY_AGG(unit_id) filter (where unit_id is not null) as unit_id")
+      // .from("unit_skill")
+      // .innerJoin(
+      //   "skill_passive",
+      //   "skill_passive.skill_id",
+      //   "unit_skill.skill_id"
+      // )
+      // // .innerJoin("unit", "unit.unit_id", "unit_skill.skill_id")
+      // .innerJoin(
+      //   "skill_passive_effect",
+      //   "skill_passive_effect.skill_id",
+      //   "unit_skill.skill_id"
+      // )
+      // // .innerJoin('skill_requirement', 'skill_requirement.skill_id', 'equippable_skill.skill_id') // Only for tmr/stmr ability
+   
+      // // .fullOuterJoin("skill_unit_restriction", function () {
+      // //   this.on(
+      // //     "skill_unit_restriction.skill_id",
+      // //     "=",
+      // //     "equippable_skill.skill_id"
+      // //   );
+      // // })
+      // // .whereNotNull("eq_id") // Necessary because fullOuterJoin will do a null = null, then results will have a row with all null values
+      // // .groupBy(
+      // //   "equippable_skill.eq_id",
+      // //   "skill_passive.skill_id",
+      // //   "skill_passive_effect.effect",
+      // //   "skill_passive_effect.effect_code_1",
+      // //   "skill_passive_effect.effect_code_2",
+      // //   "skill_passive_effect.effect_code_3",
+      // //   "skill_passive_effect.effect_code_4"
+      // // )
+      .as("skill"),
+    "skill.unit_id",
+    "unit.unit_id"
+  )
+  .groupBy(
+    "unit_stat.sub_id",
+    "unit.name",
+    "unit.sex_id",
+    "unit_stat.hp_base",
+    "unit_stat.hp_pot",
+    "unit_stat.hp_door",
+    "unit_stat.mp_base",
+    "unit_stat.mp_pot",
+    "unit_stat.mp_door",
+    "unit_stat.atk_base",
+    "unit_stat.atk_pot",
+    "unit_stat.atk_door",
+    "unit_stat.def_base",
+    "unit_stat.def_pot",
+    "unit_stat.def_door",
+    "unit_stat.mag_base",
+    "unit_stat.mag_pot",
+    "unit_stat.mag_door",
+    "unit_stat.spr_base",
+    "unit_stat.spr_pot",
+    "unit_stat.spr_door",
+    "fire_resist",
+    "ice_resist",
+    "lightning_resist",
+    "water_resist",
+    "wind_resist",
+    "earth_resist",
+    "light_resist",
+    "dark_resist",
+    "poison_resist",
+    "blind_resist",
+    "sleep_resist",
+    "silence_resist",
+    "paralyze_resist",
+    "confusion_resist",
+    "disease_resist",
+    "petrify_resist",
+    "physical_resist",
+    "magical_resist",
+    "white_magic_affinity",
+    "black_magic_affinity",
+    "green_magic_affinity",
+    "blue_magic_affinity",
+  )
+  // .where({ sub_id: sub_id })
+  .where({sub_id: 401006807}) // Esther 7*
+  .then((unit) => {
+    // console.log(unit);
+  })
+
+//-------------Materia
+
+// db
+// .select(
+//   "materia.mat_id",
+//   "equippable.name",
+//   "materia.limited as unique",
+//   db.raw(
+//     "ARRAY_AGG(materia_unit_restriction.unit_restriction) filter (where materia_unit_restriction.unit_restriction is not null) as unit_restriction"
+//   ),
+//   db.raw(
+//     "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill.skill_id, 'name', skill.name, 'rarity', skill.rarity, 'skill_passive_effect.effect', skill.effect,'limited', skill.limited, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4, 'unit_restriction', skill.unit_restriction)) filter (where skill_id is not null) as skills"
+//   )
+// )
+// .from("materia")
+// .join("equippable", function () {
+//   this.on("materia.mat_id", "=", "equippable.eq_id");
+// })
+// .fullOuterJoin(
+//   "materia_unit_restriction",
+//   "materia_unit_restriction.mat_id",
+//   "materia.mat_id"
+// )
+// .fullOuterJoin(
+//   db
+//     .select(
+//       "eq_id",
+//       "skill_passive.skill_id",
+//       "name",
+//       "rarity",
+//       "skill_passive_effect.effect",
+//       "skill_passive.limited",
+//       "effect_code_1",
+//       "effect_code_2",
+//       "effect_code_3",
+//       "effect_code_4",
+//       db.raw(
+//         "ARRAY_AGG(unit_id) filter (where unit_id is not null) as unit_restriction"
+//       )
+//     ) //db.raw("ARRAY_AGG(unit_id) filter (where unit_id is not null) as unit_id")
+//     .from("equippable_skill")
+//     .innerJoin(
+//       "skill_passive",
+//       "skill_passive.skill_id",
+//       "equippable_skill.skill_id"
+//     )
+//     .innerJoin("materia", "materia.mat_id", "equippable_skill.eq_id")
+//     .innerJoin(
+//       "skill_passive_effect",
+//       "skill_passive_effect.skill_id",
+//       "equippable_skill.skill_id"
+//     )
+//     // .innerJoin('skill_requirement', 'skill_requirement.skill_id', 'equippable_skill.skill_id') // Only for tmr/stmr ability
+//     // .innerJoin('equipment', 'equipment.equipment_id', 'equippable.eq_id')
+//     // .fullOuterJoin('skill_unit_restriction', 'skill_unit_restriction.skill_id', 'equippable_skill.skill_id')
+//     .fullOuterJoin("skill_unit_restriction", function () {
+//       this.on(
+//         "skill_unit_restriction.skill_id",
+//         "=",
+//         "equippable_skill.skill_id"
+//       );
+//     })
+//     .whereNotNull("eq_id") // Necessary because fullOuterJoin will do a null = null, then results will have a row with all null values
+//     .groupBy(
+//       "equippable_skill.eq_id",
+//       "skill_passive.skill_id",
+//       "skill_passive_effect.effect",
+//       "skill_passive_effect.effect_code_1",
+//       "skill_passive_effect.effect_code_2",
+//       "skill_passive_effect.effect_code_3",
+//       "skill_passive_effect.effect_code_4"
+//     )
+//     .as("skill"),
+//   "skill.eq_id",
+//   "materia.mat_id"
+// )
+// .groupBy("materia.mat_id", "equippable.name")
+// // .where({ rarity: 7 })
+// .orderBy("name", "asc")
+// .then((materiaList) => {
+//     // res.json(materiaList);
+//     // console.log(materiaList);
+//   })
+
+//--------Armor
+// db
+//   .select(
+//     "armor.armor_id",
+//     "equippable.name",
+//     "type",
+//     "equipment.rarity",
+//     "hp",
+//     "mp",
+//     "atk",
+//     "def",
+//     "mag",
+//     "spr",
+//     "fire_resist",
+//     "ice_resist",
+//     "lightning_resist",
+//     "water_resist",
+//     "wind_resist",
+//     "earth_resist",
+//     "light_resist",
+//     "dark_resist",
+//     "poison_resist",
+//     "blind_resist",
+//     "sleep_resist",
+//     "silence_resist",
+//     "paralyze_resist",
+//     "confusion_resist",
+//     "disease_resist",
+//     "petrify_resist",
+//     db.raw(
+//       "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill.skill_id, 'name', skill.name, 'rarity', skill.rarity, 'effect', skill.effect,'limited', skill.limited, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4, 'unit_restriction', unit_restriction)) filter (where skill_id is not null) as skills"
+//     )
+//   )
+//   .from("equipment")
+//   .join("equippable", function () {
+//     this.on("equipment.equipment_id", "=", "equippable.eq_id");
+//   })
+//   .join("armor", function () {
+//     this.on("equipment.equipment_id", "=", "armor.armor_id");
+//   })
+//   .fullOuterJoin(
+//     db
+//       .select(
+//         "eq_id",
+//         "skill_passive.skill_id",
+//         "name",
+//         "rarity",
+//         "skill_passive.effect",
+//         "limited",
+//         "effect_code_1",
+//         "effect_code_2",
+//         "effect_code_3",
+//         "effect_code_4",
+//         db.raw(
+//           "ARRAY_AGG(unit_id) filter (where unit_id is not null) as unit_restriction"
+//         )
+//       ) 
+//       .from("equippable_skill")
+//       .innerJoin(
+//         "skill_passive",
+//         "skill_passive.skill_id",
+//         "equippable_skill.skill_id"
+//       )
+//       .innerJoin("accessory", "accessory.acc_id", "equippable_skill.eq_id")
+//       .innerJoin(
+//         "skill_passive_effect",
+//         "skill_passive_effect.skill_id",
+//         "equippable_skill.skill_id"
+//       )
+//       .fullOuterJoin("skill_unit_restriction", function () {
+//         this.on(
+//           "skill_unit_restriction.skill_id",
+//           "=",
+//           "equippable_skill.skill_id"
+//         );
+//       })
+//       .whereNotNull("eq_id") // Necessary because fullOuterJoin will do a null = null, then results will have a row with all null values
+//       .groupBy(
+//         "equippable_skill.eq_id",
+//         "skill_passive.skill_id",
+//         "skill_passive_effect.effect_code_1",
+//         "skill_passive_effect.effect_code_2",
+//         "skill_passive_effect.effect_code_3",
+//         "skill_passive_effect.effect_code_4"
+//       )
+//       .as("skill"),
+//     "skill.eq_id",
+//     "armor.armor_id"
+//   )
+//   .groupBy(
+//     "armor.armor_id",
+//     "equippable.name",
+//     "equipment.rarity",
+//     "equipment.hp",
+//     "equipment.mp",
+//     "equipment.atk",
+//     "equipment.def",
+//     "equipment.mag",
+//     "equipment.spr",
+//     "equipment.fire_resist",
+//     "equipment.ice_resist",
+//     "equipment.lightning_resist",
+//     "equipment.water_resist",
+//     "equipment.wind_resist",
+//     "equipment.earth_resist",
+//     "equipment.light_resist",
+//     "equipment.dark_resist",
+//     "equipment.poison_resist",
+//     "equipment.blind_resist",
+//     "equipment.sleep_resist",
+//     "equipment.silence_resist",
+//     "equipment.paralyze_resist",
+//     "equipment.confusion_resist",
+//     "equipment.disease_resist",
+//     "equipment.petrify_resist",
+//   )
+//   // .where({ rarity: 7 })
+//   .orderBy("name", "asc")
+//   .then((armorList) => {
+
+//       console.log(armorList);
+//     })
+
+
+//---------Accessory
+db
+  .select(
+    "accessory.acc_id",
+    "equippable.name",
+    "type",
+    "equipment.rarity",
+    "hp",
+    "mp",
+    "atk",
+    "def",
+    "mag",
+    "spr",
+    "fire_resist",
+    "ice_resist",
+    "lightning_resist",
+    "water_resist",
+    "wind_resist",
+    "earth_resist",
+    "light_resist",
+    "dark_resist",
+    "poison_resist",
+    "blind_resist",
+    "sleep_resist",
+    "silence_resist",
+    "paralyze_resist",
+    "confusion_resist",
+    "disease_resist",
+    "petrify_resist",
+    db.raw(
+      "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill.skill_id, 'name', skill.name, 'rarity', skill.rarity, 'effect', skill.effect,'limited', skill.limited, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4, 'unit_restriction', unit_restriction)) filter (where skill_id is not null) as skills"
+    )
+  )
+  .from("equipment")
+  .join("equippable", function () {
+    this.on("equipment.equipment_id", "=", "equippable.eq_id");
+  })
+  .join("accessory", function () {
+    this.on("equipment.equipment_id", "=", "accessory.acc_id");
+  })
+  .fullOuterJoin(
+    db
+      .select(
+        "eq_id",
+        "skill_passive.skill_id",
+        "name",
+        "rarity",
+        "skill_passive.effect",
+        "limited",
+        "effect_code_1",
+        "effect_code_2",
+        "effect_code_3",
+        "effect_code_4",
+        db.raw(
+          "ARRAY_AGG(unit_id) filter (where unit_id is not null) as unit_restriction"
+        )
+      ) //db.raw("ARRAY_AGG(unit_id) filter (where unit_id is not null) as unit_id")
+      .from("equippable_skill")
+      .innerJoin(
+        "skill_passive",
+        "skill_passive.skill_id",
+        "equippable_skill.skill_id"
+      )
+      .innerJoin("accessory", "accessory.acc_id", "equippable_skill.eq_id")
+      .innerJoin(
+        "skill_passive_effect",
+        "skill_passive_effect.skill_id",
+        "equippable_skill.skill_id"
+      )
+      // .innerJoin('skill_requirement', 'skill_requirement.skill_id', 'equippable_skill.skill_id') // Only for tmr/stmr ability
+      // .innerJoin('equipment', 'equipment.equipment_id', 'equippable.eq_id')
+      // .fullOuterJoin('skill_unit_restriction', 'skill_unit_restriction.skill_id', 'equippable_skill.skill_id')
+      .fullOuterJoin("skill_unit_restriction", function () {
+        this.on(
+          "skill_unit_restriction.skill_id",
+          "=",
+          "equippable_skill.skill_id"
+        );
+      })
+      .whereNotNull("eq_id") // Necessary because fullOuterJoin will do a null = null, then results will have a row with all null values
+      .groupBy(
+        "equippable_skill.eq_id",
+        "skill_passive.skill_id",
+        "skill_passive_effect.effect_code_1",
+        "skill_passive_effect.effect_code_2",
+        "skill_passive_effect.effect_code_3",
+        "skill_passive_effect.effect_code_4"
+      )
+      .as("skill"),
+    "skill.eq_id",
+    "accessory.acc_id"
+  )
+  .groupBy(
+    "accessory.acc_id",
+    "equippable.name",
+    "equipment.rarity",
+    "equipment.hp",
+    "equipment.mp",
+    "equipment.atk",
+    "equipment.def",
+    "equipment.mag",
+    "equipment.spr",
+    "equipment.fire_resist",
+    "equipment.ice_resist",
+    "equipment.lightning_resist",
+    "equipment.water_resist",
+    "equipment.wind_resist",
+    "equipment.earth_resist",
+    "equipment.light_resist",
+    "equipment.dark_resist",
+    "equipment.poison_resist",
+    "equipment.blind_resist",
+    "equipment.sleep_resist",
+    "equipment.silence_resist",
+    "equipment.paralyze_resist",
+    "equipment.confusion_resist",
+    "equipment.disease_resist",
+    "equipment.petrify_resist",
+  )
+  // .where({ rarity: 7 })
+  .orderBy("name", "asc")
+  .then((accList) => {
+    //   res.json(unitList);
+    // accessory_list = accList;
+    // console.log(accList);
+  })
+  // .catch((err) => res.status(400).json("Unable to retrieve accessory list."));
+
+
+
+//--------weapon
 
 db.select(
   "weapon.weapon_id",
@@ -322,6 +941,8 @@ app.get("/unit/:id", unit.handleGetUnit(db));
 
 app.get("/equipment", equipment.handleGetEquipmentList(db));
 app.get("/equipment/:id", equipment.handleGetEquipment(db));
+
+app.get("/materia", materia.handleGetMateriaList(db));
 
 app.listen(3000, () => {
   console.log("app is running on port 3000");
