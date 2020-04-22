@@ -24,53 +24,193 @@ const db = knex({
   },
 });
 
-//----------------------
+
+//---------------Enhancements subquery
+db.select(
+  "skill_enhancement.unit_id",
+  "skill_enhancement.skill_base",
+  "skill_enhancement.skill_2 as skill_id",
+  "skill_passive.name",
+  "skill_passive.rarity as skill_rarity",
+  db.raw(
+    "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill_passive_effect.skill_id, 'effect', skill_passive_effect.effect, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4)) filter (where skill_passive_effect.skill_id is not null) as effects"
+  )
+)
+.from('skill_enhancement')
+.innerJoin(
+  "skill_passive",
+  "skill_passive.skill_id",
+  "skill_enhancement.skill_2"
+)
+// .fullOuterJoin("unit", "unit.unit_id", "unit_skill.skill_id")
+.innerJoin(
+  "skill_passive_effect",
+  "skill_passive_effect.skill_id",
+  "skill_enhancement.skill_2"
+)
+.innerJoin("unit_skill", function() {
+  this.on(function() {
+    this.on('unit_skill.unit_id', '=', 'skill_enhancement.unit_id')
+    this.on('unit_skill.skill_id', '=', 'skill_enhancement.skill_base')
+  })
+})
+.groupBy(
+  "skill_enhancement.unit_id",
+  "skill_enhancement.skill_base",
+  "skill_enhancement.skill_2",
+  "skill_passive.name",
+  "skill_passive.rarity",
+)
+.where({"unit_skill.unit_id": 100012405})
+// .then(console.log);
+
+//---------------------------------
 db
-      .select(
-        "unit_skill.unit_id",
-        "level",
-        "unit_skill.rarity as unit_rarity",
-        "unit_skill.skill_id",
+    .select(
+      "unit_skill.unit_id",
+      "level",
+      "unit_skill.rarity as unit_rarity",
+      "unit_skill.skill_id",
+      "skill_passive.name",
+      "skill_passive.rarity as skill_rarity",
+      // "skill_passive_effect.effect",
+      // "skill_passive.limited",
+      // "effect_code_1",
+      // "effect_code_2",
+      // "effect_code_3",
+      // "effect_code_4",
+      // db.raw(
+      //   "ARRAY_AGG(unit_id) filter (where unit_id is not null) as requirements"
+      // )
+      // db.raw(
+      //   "JSON_OBJECT_AGG(status, chance) filter (where status is not null) as status_inflict"
+      // ),
+      // db.raw(
+      //   "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill_passive_effect.skill_id, 'effect', skill_passive_effect.effect, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4)) filter (where skill_passive_effect.skill_id is not null) as effect"
+      // )
+      db.raw(
+        "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill_passive_effect.skill_id, 'effect', skill_passive_effect.effect, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4)) filter (where skill_passive_effect.skill_id is not null) as effects"
+      ),
+      db.raw(
+        "ARRAY_AGG(JSON_BUILD_OBJECT('name', enhancement.name, 'skill_id', enhancement.skill_id, 'effect', enhancement.effects)) filter (where enhancement.skill_id is not null) as enhancements"
+      )
+
+    ) //db.raw("ARRAY_AGG(unit_id) filter (where unit_id is not null) as unit_id")
+    .from("unit_skill")
+    .innerJoin(
+      "skill_passive",
+      "skill_passive.skill_id",
+      "unit_skill.skill_id"
+    )
+    // .fullOuterJoin("unit", "unit.unit_id", "unit_skill.skill_id")
+    .innerJoin(
+      "skill_passive_effect",
+      "skill_passive_effect.skill_id",
+      "unit_skill.skill_id"
+    )
+    
+    .fullOuterJoin( // enhancements
+      db.select(
+        "skill_enhancement.unit_id",
+        "skill_enhancement.skill_base",
+        "skill_enhancement.skill_2 as skill_id",
         "skill_passive.name",
         "skill_passive.rarity as skill_rarity",
-        // "skill_passive_effect.effect",
-        // "skill_passive.limited",
-        // "effect_code_1",
-        // "effect_code_2",
-        // "effect_code_3",
-        // "effect_code_4",
-        // db.raw(
-        //   "ARRAY_AGG(unit_id) filter (where unit_id is not null) as requirements"
-        // )
-        // db.raw(
-        //   "JSON_OBJECT_AGG(status, chance) filter (where status is not null) as status_inflict"
-        // ),
         db.raw(
           "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill_passive_effect.skill_id, 'effect', skill_passive_effect.effect, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4)) filter (where skill_passive_effect.skill_id is not null) as effects"
         )
-      ) //db.raw("ARRAY_AGG(unit_id) filter (where unit_id is not null) as unit_id")
-      .from("unit_skill")
+      )
+      .from('skill_enhancement')
       .innerJoin(
         "skill_passive",
         "skill_passive.skill_id",
-        "unit_skill.skill_id"
+        "skill_enhancement.skill_2"
       )
-      // .innerJoin("unit", "unit.unit_id", "unit_skill.skill_id")
+      // .fullOuterJoin("unit", "unit.unit_id", "unit_skill.skill_id")
       .innerJoin(
         "skill_passive_effect",
         "skill_passive_effect.skill_id",
-        "unit_skill.skill_id"
+        "skill_enhancement.skill_2"
       )
+      .innerJoin("unit_skill", function() {
+        this.on(function() {
+          this.on('unit_skill.unit_id', '=', 'skill_enhancement.unit_id')
+          this.on('unit_skill.skill_id', '=', 'skill_enhancement.skill_base')
+        })
+      })
       .groupBy(
-        "unit_skill.unit_id",
-        "unit_skill.level",
-        "unit_skill.rarity",
-        "unit_skill.skill_id",
+        "skill_enhancement.unit_id",
+        "skill_enhancement.skill_base",
+        "skill_enhancement.skill_2",
         "skill_passive.name",
         "skill_passive.rarity",
       )
-      .where({unit_id: 401006805})
-      // .then(console.log);
+      // db.select(
+      //   // "skill_enhancement.unit_id",
+      //   "skill_enhancement.skill_base",
+      //   "skill_enhancement.skill_2 as skill_id",
+      //   "skill_passive.name",
+      //   "skill_passive.rarity as skill_rarity",
+      //   db.raw(
+      //     "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill_passive_effect.skill_id, 'effect', skill_passive_effect.effect, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4)) filter (where skill_passive_effect.skill_id is not null) as effects"
+      //   )
+      // )
+      // .from('skill_enhancement')
+      // .innerJoin(
+      //   "skill_passive",
+      //   "skill_passive.skill_id",
+      //   "skill_enhancement.skill_2"
+      // )
+      // // .fullOuterJoin("unit", "unit.unit_id", "unit_skill.skill_id")
+      // .innerJoin(
+      //   "skill_passive_effect",
+      //   "skill_passive_effect.skill_id",
+      //   "skill_enhancement.skill_2"
+      // )
+      // .innerJoin("unit_skill", function() {
+      //   this.on(function() {
+      //     // this.on('unit_skill.unit_id', '=', 'skill_enhancement.unit_id')
+      //     this.on('unit_skill.skill_id', '=', 'skill_enhancement.skill_base')
+      //   })
+      // })
+      // .groupBy(
+      //   "skill_enhancement.skill_base",
+      //   "skill_enhancement.skill_2",
+      //   "skill_passive.name",
+      //   "skill_passive.rarity",
+      // )
+
+
+
+
+      // .innerJoin(
+      //   "unit_skill",
+      //   "unit_skill.unit_id",
+      //   "skill_enhancement.unit_id"
+      // )
+      .as('enhancement'),
+      // 'enhancement.skill_base',
+      // 'unit_skill.skill_id'
+      function() {
+        this.on(function() {
+          this.on('unit_skill.unit_id', '=', 'enhancement.unit_id')
+          this.on('unit_skill.skill_id', '=', 'enhancement.skill_base')
+        })}
+
+
+    )
+    .groupBy(
+      "unit_skill.unit_id",
+      "unit_skill.level",
+      "unit_skill.rarity",
+      "unit_skill.skill_id",
+      "skill_passive.name",
+      "skill_passive.rarity",
+    )
+    .where({"unit_skill.unit_id": 100012405})
+    .then((unit) => {
+      // console.log(unit);
+    });
 
 //------------Unit
 db
@@ -133,7 +273,10 @@ db
     // )
     db.raw(
       "ARRAY_AGG(DISTINCT JSONB_BUILD_OBJECT('level', skill.level, 'unit_rarity', skill.unit_rarity, 'skill_id', skill.skill_id, 'name', skill.name, 'skill_rarity', skill.skill_rarity, 'effects', skill.effects)) filter (where skill.skill_id is not null ) as skills"
-    )
+    ),
+    db.raw(
+      "ARRAY_AGG(DISTINCT JSONB_BUILD_OBJECT('skill_id', latent_skill.skill_id, 'name', latent_skill.name, 'skill_rarity', latent_skill.skill_rarity, 'effects', latent_skill.effects)) filter (where latent_skill.skill_id is not null ) as latent_skills"
+    ),
   )
   .from("unit_stat")
   .join("unit", function () {
@@ -150,6 +293,54 @@ db
   // .join("unit_skill", function () {
   //   this.on("unit.unit_id", "=", "unit_skill.unit_id");
   // })
+  .fullOuterJoin(
+    db
+    .select(
+      "unit_latent_skill.unit_id",
+      "unit_latent_skill.skill_2 as skill_id",
+      "skill_passive.name",
+      "skill_passive.rarity as skill_rarity",
+      // "skill_passive_effect.effect",
+      // "skill_passive.limited",
+      // "effect_code_1",
+      // "effect_code_2",
+      // "effect_code_3",
+      // "effect_code_4",
+      // db.raw(
+      //   "ARRAY_AGG(unit_id) filter (where unit_id is not null) as requirements"
+      // )
+      // db.raw(
+      //   "JSON_OBJECT_AGG(status, chance) filter (where status is not null) as status_inflict"
+      // ),
+      // db.raw(
+      //   "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill_passive_effect.skill_id, 'effect', skill_passive_effect.effect, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4)) filter (where skill_passive_effect.skill_id is not null) as effect"
+      // )
+      db.raw(
+        "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill_passive_effect.skill_id, 'effect', skill_passive_effect.effect, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4)) filter (where skill_passive_effect.skill_id is not null) as effects"
+      )
+    ) //db.raw("ARRAY_AGG(unit_id) filter (where unit_id is not null) as unit_id")
+    .from("unit_latent_skill")
+    .innerJoin(
+      "skill_passive",
+      "skill_passive.skill_id",
+      "unit_latent_skill.skill_2"
+    )
+    // .fullOuterJoin("unit", "unit.unit_id", "unit_skill.skill_id")
+    .innerJoin(
+      "skill_passive_effect",
+      "skill_passive_effect.skill_id",
+      "unit_latent_skill.skill_2"
+    )
+    .groupBy(
+      "unit_latent_skill.unit_id",
+      "unit_latent_skill.skill_2",
+      "skill_passive.name",
+      "skill_passive.rarity",
+    )
+    .as("latent_skill"),
+    "latent_skill.unit_id",
+    "unit.unit_id"
+  )
   .fullOuterJoin(
     db
     .select(
@@ -299,9 +490,11 @@ db
     "blue_magic_affinity",
   )
   // .where({ sub_id: sub_id })
-  .where({sub_id: 401006807}) // Esther 7*
+  // .where({sub_id: 401006807}) // Esther 7*
+  .where({sub_id: 100012405}) // BS Sakura 7*
   .then((unit) => {
     // console.log(unit);
+    // console.log(unit[0].latent_skills);
   })
 
 //-------------Materia
