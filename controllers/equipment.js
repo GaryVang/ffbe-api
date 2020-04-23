@@ -52,7 +52,7 @@ const handleGetEquipmentList = (db) => async (req, res) => {
   //-----------------Above old armor
   await db
     .select(
-      "armor.armor_id",
+      "armor.armor_id as eq_id",
       "equippable.name",
       "type",
       "equipment.rarity",
@@ -232,7 +232,7 @@ const handleGetEquipmentList = (db) => async (req, res) => {
 //------------------------both working Acc
   await db
   .select(
-    "accessory.acc_id",
+    "accessory.acc_id as eq_id",
     "equippable.name",
     "type",
     "equipment.rarity",
@@ -423,7 +423,7 @@ const handleGetEquipmentList = (db) => async (req, res) => {
 
   await db
     .select(
-      "weapon.weapon_id",
+      "weapon.weapon_id as eq_id",
       "equippable.name",
       "weapon.type",
       "equipment.rarity",

@@ -23,6 +23,7 @@ const handleGetUnit = (db) => (req, res) => {
     db
     .select(
       "sub_id",
+      "unit_stat.rarity",
       "unit.name",
       "sex_id",
       "hp_base",
@@ -299,6 +300,7 @@ const handleGetUnit = (db) => (req, res) => {
     )
     .groupBy(
       "unit_stat.sub_id",
+      "unit_stat.rarity",
       "unit.name",
       "unit.sex_id",
       "unit_stat.hp_base",
