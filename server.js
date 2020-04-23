@@ -88,6 +88,13 @@ db
       // db.raw(
       //   "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill_passive_effect.skill_id, 'effect', skill_passive_effect.effect, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4)) filter (where skill_passive_effect.skill_id is not null) as effect"
       // )
+
+      // db.raw(
+      //   "ARRAY_AGG(DISTINCT skill_requirement.eq_id) filter (where skill_requirement.eq_id is not null) as requirements"
+      // ),
+      db.raw(
+        "ARRAY_AGG(DISTINCT JSONB_BUILD_OBJECT(skill_requirement.requirement, skill_requirement.eq_id)) filter (where skill_requirement.requirement is not null) as requirements"
+      ),
       db.raw(
         "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill_passive_effect.skill_id, 'effect', skill_passive_effect.effect, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4)) filter (where skill_passive_effect.skill_id is not null) as effects"
       ),
@@ -108,6 +115,7 @@ db
       "skill_passive_effect.skill_id",
       "unit_skill.skill_id"
     )
+    .leftJoin('skill_requirement', 'unit_skill.skill_id', 'skill_requirement.skill_id')
     
     .fullOuterJoin( // enhancements
       db.select(
@@ -207,9 +215,9 @@ db
       "skill_passive.name",
       "skill_passive.rarity",
     )
-    .where({"unit_skill.unit_id": 100012405})
+    .where({"unit_skill.unit_id": 401006805, "unit_skill.skill_id": 912185})
     .then((unit) => {
-      // console.log(unit);
+      // console.log(unit[0]);
     });
 
 //------------Unit

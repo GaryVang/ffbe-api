@@ -79,7 +79,7 @@ const handleGetUnit = (db) => (req, res) => {
       //   "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill.skill_id, 'name', skill.name, 'rarity', skill.rarity, 'effect', skill.effect,'limited', skill.limited, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4, 'unit_restriction', skill.unit_restriction)) filter (where skill_id is not null) as skills"
       // )
       db.raw(
-        "ARRAY_AGG(DISTINCT JSONB_BUILD_OBJECT('level', skill.level, 'unit_rarity', skill.unit_rarity, 'skill_id', skill.skill_id, 'name', skill.name, 'skill_rarity', skill.skill_rarity, 'effects', skill.effects, 'enhancements', skill.enhancements)) filter (where skill.skill_id is not null ) as skills"
+        "ARRAY_AGG(DISTINCT JSONB_BUILD_OBJECT('level', skill.level, 'unit_rarity', skill.unit_rarity, 'skill_id', skill.skill_id, 'name', skill.name, 'skill_rarity', skill.skill_rarity, 'effects', skill.effects, 'enhancements', skill.enhancements, 'requirements', skill.requirements)) filter (where skill.skill_id is not null ) as skills"
       ),
       db.raw(
         "ARRAY_AGG(DISTINCT JSONB_BUILD_OBJECT('skill_id', latent_skill.skill_id, 'name', latent_skill.name, 'skill_rarity', latent_skill.skill_rarity, 'effects', latent_skill.effects)) filter (where latent_skill.skill_id is not null ) as latent_skills"
@@ -163,9 +163,9 @@ const handleGetUnit = (db) => (req, res) => {
       // "effect_code_2",
       // "effect_code_3",
       // "effect_code_4",
-      // db.raw(
-      //   "ARRAY_AGG(unit_id) filter (where unit_id is not null) as requirements"
-      // )
+      db.raw(
+        "ARRAY_AGG(DISTINCT JSONB_BUILD_OBJECT(skill_requirement.requirement, skill_requirement.eq_id)) filter (where skill_requirement.requirement is not null) as requirements"
+      ),
       // db.raw(
       //   "JSON_OBJECT_AGG(status, chance) filter (where status is not null) as status_inflict"
       // ),
@@ -192,7 +192,9 @@ const handleGetUnit = (db) => (req, res) => {
       "skill_passive_effect.skill_id",
       "unit_skill.skill_id"
     )
-    
+
+    .leftJoin('skill_requirement', 'unit_skill.skill_id', 'skill_requirement.skill_id')
+
     .fullOuterJoin( // enhancements
       db.select(
         "skill_enhancement.unit_id",

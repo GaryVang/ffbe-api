@@ -79,8 +79,14 @@ const handleGetEquipmentList = (db) => async (req, res) => {
       "disease_resist",
       "petrify_resist",
       db.raw(
-        "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill.skill_id, 'name', skill.name, 'rarity', skill.rarity, 'effect', skill.effect,'limited', skill.limited, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4, 'unit_restriction', unit_restriction)) filter (where skill_id is not null) as skills"
-      )
+        "ARRAY_AGG(DISTINCT JSONB_BUILD_OBJECT('skill_id', skill.skill_id, 'name', skill.name, 'rarity', skill.rarity, 'effect', skill.effect,'limited', skill.limited, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4, 'unit_restriction', unit_restriction)) filter (where skill_id is not null) as skills"
+      ),
+      db.raw(
+        "ARRAY_AGG(DISTINCT equipment_unit_requirement.unit_id) filter (where equipment_unit_requirement.unit_id is not null) as unit_requirements"
+      ),
+      db.raw(
+        "ARRAY_AGG(DISTINCT equipment_sex_requirement.sex_id) filter (where equipment_sex_requirement.sex_id is not null) as sex_requirements"
+      ),
     )
     .from("equipment")
     .join("equippable", function () {
@@ -89,6 +95,8 @@ const handleGetEquipmentList = (db) => async (req, res) => {
     .join("armor", function () {
       this.on("equipment.equipment_id", "=", "armor.armor_id");
     })
+    .leftJoin("equipment_sex_requirement", "equipment_sex_requirement.equipment_id", "armor.armor_id")
+    .leftJoin("equipment_unit_requirement", "equipment_unit_requirement.equipment_id", "armor.armor_id")
     .fullOuterJoin(
       db
         .select(
@@ -251,8 +259,14 @@ const handleGetEquipmentList = (db) => async (req, res) => {
     "disease_resist",
     "petrify_resist",
     db.raw(
-      "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill.skill_id, 'name', skill.name, 'rarity', skill.rarity, 'effect', skill.effect,'limited', skill.limited, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4, 'unit_restriction', unit_restriction)) filter (where skill_id is not null) as skills"
-    )
+      "ARRAY_AGG(DISTINCT JSONB_BUILD_OBJECT('skill_id', skill.skill_id, 'name', skill.name, 'rarity', skill.rarity, 'effect', skill.effect,'limited', skill.limited, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4, 'unit_restriction', unit_restriction)) filter (where skill_id is not null) as skills"
+    ),
+    db.raw(
+      "ARRAY_AGG(DISTINCT equipment_unit_requirement.unit_id) filter (where equipment_unit_requirement.unit_id is not null) as unit_requirements"
+    ),
+    db.raw(
+      "ARRAY_AGG(DISTINCT equipment_sex_requirement.sex_id) filter (where equipment_sex_requirement.sex_id is not null) as sex_requirements"
+    ),
   )
   .from("equipment")
   .join("equippable", function () {
@@ -261,6 +275,8 @@ const handleGetEquipmentList = (db) => async (req, res) => {
   .join("accessory", function () {
     this.on("equipment.equipment_id", "=", "accessory.acc_id");
   })
+  .leftJoin("equipment_sex_requirement", "equipment_sex_requirement.equipment_id", "accessory.acc_id")
+  .leftJoin("equipment_unit_requirement", "equipment_unit_requirement.equipment_id", "accessory.acc_id")
   .fullOuterJoin(
     db
       .select(
@@ -452,8 +468,14 @@ const handleGetEquipmentList = (db) => async (req, res) => {
       // db.raw("JSON_AGG((test.skill_id, test.name, test.rarity)) as skills"),
       // db.raw("ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill.skill_id, 'name', skill.name, 'rarity', skill.rarity, 'effect', skill.effect,'limited', skill.limited)) as skills"),
       db.raw(
-        "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill.skill_id, 'name', skill.name, 'rarity', skill.rarity, 'effect', skill.effect,'limited', skill.limited, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4, 'unit_restriction', unit_restriction)) filter (where skill_id is not null) as skills"
-      )
+        "ARRAY_AGG(DISTINCT JSONB_BUILD_OBJECT('skill_id', skill.skill_id, 'name', skill.name, 'rarity', skill.rarity, 'effect', skill.effect,'limited', skill.limited, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4, 'unit_restriction', unit_restriction)) filter (where skill_id is not null) as skills"
+      ),
+      db.raw(
+        "ARRAY_AGG(DISTINCT equipment_unit_requirement.unit_id) filter (where equipment_unit_requirement.unit_id is not null) as unit_requirements"
+      ),
+      db.raw(
+        "ARRAY_AGG(DISTINCT equipment_sex_requirement.sex_id) filter (where equipment_sex_requirement.sex_id is not null) as sex_requirements"
+      ),
     )
     .from("weapon")
     .innerJoin("equipment", "equipment.equipment_id", "=", "weapon.weapon_id")
@@ -464,6 +486,8 @@ const handleGetEquipmentList = (db) => async (req, res) => {
       "=",
       "weapon.variance_id"
     )
+    .leftJoin("equipment_sex_requirement", "equipment_sex_requirement.equipment_id", "weapon.weapon_id")
+    .leftJoin("equipment_unit_requirement", "equipment_unit_requirement.equipment_id", "weapon.weapon_id")
     .fullOuterJoin(
       "weapon_status_inflict",
       "weapon_status_inflict.weapon_id",
