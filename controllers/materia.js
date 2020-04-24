@@ -78,8 +78,8 @@ const handleGetMateriaList = (db) => async (req, res) => {
       .groupBy("materia.mat_id", "equippable.name")
       // .where({ rarity: 7 })
       .orderBy("name", "asc")
-      .then((materiaList) => {
-        res.json(materiaList);
+      .then((materia_list) => {
+        res.json(materia_list);
         // console.log(materiaList);
       })
       .catch((err) => res.status(400).json("Unable to retrieve materia list"))
