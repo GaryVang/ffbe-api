@@ -174,7 +174,7 @@ const handleGetUnit = (db) => (req, res) => {
       //   "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill_passive_effect.skill_id, 'effect', skill_passive_effect.effect, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4)) filter (where skill_passive_effect.skill_id is not null) as effect"
       // )
       db.raw(
-        "ARRAY_AGG(JSON_BUILD_OBJECT('skill_id', skill_passive_effect.skill_id, 'effect', skill_passive_effect.effect, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4)) filter (where skill_passive_effect.skill_id is not null) as effects"
+        "ARRAY_AGG(DISTINCT JSONB_BUILD_OBJECT('skill_id', skill_passive_effect.skill_id, 'effect', skill_passive_effect.effect, 'effect_code_1', effect_code_1, 'effect_code_2', effect_code_2, 'effect_code_3', effect_code_3, 'effect_code_4', effect_code_4)) filter (where skill_passive_effect.skill_id is not null) as effects"
       ),
       db.raw(
         "ARRAY_AGG(DISTINCT JSONB_BUILD_OBJECT('name', enhancement.name, 'skill_id', enhancement.skill_id, 'effect', enhancement.effects)) filter (where enhancement.skill_id is not null) as enhancements"

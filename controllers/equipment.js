@@ -454,6 +454,9 @@ const handleGetEquipmentList = (db) => async (req, res) => {
       "weapon_variance.lower_limit",
       "weapon_variance.upper_limit",
       // db.raw("ARRAY_AGG(element) as element"),
+      // db.raw(
+      //   "ARRAY[equipment.fire_resist, equipment.ice_resist, equipment.lightning_resist, equipment.water_resist, equipment.wind_resist, equipment.earth_resist, equipment.light_resist, equipment.dark_resist] as element_resist"
+      // ),
       db.raw(
         "ARRAY_AGG(element) filter (where element is not null) as element_inflict"
       ),
