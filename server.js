@@ -6,16 +6,6 @@ const unit = require("./controllers/unit");
 const equipment = require("./controllers/equipment");
 const materia = require("./controllers/materia");
 
-// const db = knex({
-//   client: "pg",
-//   connection: {
-//     host: "127.0.0.1",
-//     user: "postgres",
-//     password: "test123",
-//     database: "ffbe-v3",
-//   },
-// });
-
 const db = knex({
   client: 'pg',
   connection: {
