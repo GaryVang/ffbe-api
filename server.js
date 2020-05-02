@@ -6,12 +6,22 @@ const unit = require("./controllers/unit");
 const equipment = require("./controllers/equipment");
 const materia = require("./controllers/materia");
 
+// const db = knex({
+//   client: 'pg',
+//   connection: {
+//     connectionString : process.env.DATABASE_URL,
+//     ssl: true,
+//   }
+// });
+
 const db = knex({
-  client: 'pg',
+  client: "pg",
   connection: {
-    connectionString : process.env.DATABASE_URL,
-    ssl: true,
-  }
+    host: "127.0.0.1",
+    user: "postgres",
+    password: "test123",
+    database: "ffbe-v3",
+  },
 });
 
 const app = express();
@@ -29,6 +39,6 @@ app.get("/equipment/:id", equipment.handleGetEquipment(db));
 
 app.get("/materia", materia.handleGetMateriaList(db));
 
-app.listen(process.env.PORT || 3000, () => {
+app.listen(3000, () => {
 	console.log(`app is running on port ${process.env.PORT}`);
 });
