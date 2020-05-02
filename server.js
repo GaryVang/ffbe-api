@@ -19,6 +19,8 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
+app.get("/", (req, res) => {res.send("I hope this is working!")});
+
 app.get("/unit", unit.handleGetUnitList(db));
 app.get("/unit/:id", unit.handleGetUnit(db));
 
