@@ -11,19 +11,7 @@ const db = knex({
   connection: {
     connectionString : process.env.DATABASE_URL,
     ssl: true,
-  },
-acquireConnectionTimeout: 600000,
-pool: {
-      min: 0,
-      max: 7,
-      acquireTimeoutMillis: 300000,
-      createTimeoutMillis: 300000,
-      destroyTimeoutMillis: 50000,
-      idleTimeoutMillis: 300000,
-      reapIntervalMillis: 10000,
-      createRetryIntervalMillis: 2000,
-      propagateCreateError: false,
-    }
+  }
 });
 
 const app = express();
@@ -34,13 +22,7 @@ app.use(cors());
 app.get("/", (req, res) => {res.send("I hope this is working!")});
 
 app.get("/unit", unit.handleGetUnitList(db));
-app.get("/unit/:id", async (req, res) => {
-	try{
-		let getUnit = await unit.handleGetUnit(db);
-	}
-	catch (error) {
-	}
-});
+app.get("/unit/:id", unit.handleGetUnit(db));
 
 app.get("/equipment", equipment.handleGetEquipmentList(db));
 app.get("/equipment/:id", equipment.handleGetEquipment(db));
