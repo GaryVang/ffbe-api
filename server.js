@@ -26,7 +26,8 @@ app.get("/unit", async (req, res) => {
 		let getUnit = await unit.handleGetUnitList(db);
 	}
 	catch (error) {
-	});
+	}
+});
 app.get("/unit/:id", unit.handleGetUnit(db));
 
 app.get("/equipment", equipment.handleGetEquipmentList(db));
