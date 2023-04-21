@@ -12,6 +12,7 @@ const db = knex({
     connectionString : process.env.DATABASE_URL,
     ssl: true,
   },
+acquireConnectionTimeout: 600000,
 pool: {
       min: 0,
       max: 7,
