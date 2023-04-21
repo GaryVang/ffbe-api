@@ -21,7 +21,12 @@ app.use(cors());
 
 app.get("/", (req, res) => {res.send("I hope this is working!")});
 
-app.get("/unit", unit.handleGetUnitList(db));
+app.get("/unit", async (req, res) => {
+	try{
+		let getUnit = await unit.handleGetUnitList(db);
+	}
+	catch (error) {
+	});
 app.get("/unit/:id", unit.handleGetUnit(db));
 
 app.get("/equipment", equipment.handleGetEquipmentList(db));
