@@ -11,6 +11,7 @@ const handleGetUnitList = (db) => (req, res) => {
     .then((unitList) => {
       res.json(unitList);
     })
+    .catch((err) => res.status(400).json("Unable to retrieve unit"));
 };
 
 // Retrieves a unit based on its sub_id
