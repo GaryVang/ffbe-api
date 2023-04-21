@@ -21,14 +21,14 @@ app.use(cors());
 
 app.get("/", (req, res) => {res.send("I hope this is working!")});
 
-app.get("/unit", async (req, res) => {
+app.get("/unit", unit.handleGetUnitList(db));
+app.get("/unit/:id", async (req, res) => {
 	try{
-		let getUnit = await unit.handleGetUnitList(db);
+		let getUnit = await unit.handleGetUnit(db);
 	}
 	catch (error) {
 	}
 });
-app.get("/unit/:id", unit.handleGetUnit(db));
 
 app.get("/equipment", equipment.handleGetEquipmentList(db));
 app.get("/equipment/:id", equipment.handleGetEquipment(db));
